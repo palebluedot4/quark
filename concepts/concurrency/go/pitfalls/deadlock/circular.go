@@ -49,3 +49,24 @@ func GoodConsistentLockOrder() {
 	}()
 	wg.Wait()
 }
+
+func GoodConsistentLockOrderWithGo() {
+	var (
+		wg  sync.WaitGroup
+		mu1 sync.Mutex
+		mu2 sync.Mutex
+	)
+	wg.Go(func() {
+		mu1.Lock()
+		defer mu1.Unlock()
+		mu2.Lock()
+		defer mu2.Unlock()
+	})
+	wg.Go(func() {
+		mu1.Lock()
+		defer mu1.Unlock()
+		mu2.Lock()
+		defer mu2.Unlock()
+	})
+	wg.Wait()
+}
