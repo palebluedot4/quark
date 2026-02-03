@@ -44,6 +44,15 @@ func GoodEarlyAddIterative() {
 	wg.Wait()
 }
 
+func GoodSafeAddWithGo() {
+	var wg sync.WaitGroup
+	for range 10 {
+		wg.Go(func() {
+		})
+	}
+	wg.Wait()
+}
+
 func BadWaitGroupReuse() {
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -68,5 +77,15 @@ func GoodWaitGroupReuse() {
 	go func() {
 		wg.Done()
 	}()
+	wg.Wait()
+}
+
+func GoodWaitGroupReuseWithGo() {
+	var wg sync.WaitGroup
+	wg.Go(func() {
+	})
+	wg.Wait()
+	wg.Go(func() {
+	})
 	wg.Wait()
 }
