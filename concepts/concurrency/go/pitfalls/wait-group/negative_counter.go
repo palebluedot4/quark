@@ -24,3 +24,12 @@ func GoodCounter(n int) {
 	}
 	wg.Wait()
 }
+
+func GoodCounterWithGo(n int) {
+	var wg sync.WaitGroup
+	for range n {
+		wg.Go(func() {
+		})
+	}
+	wg.Wait()
+}
