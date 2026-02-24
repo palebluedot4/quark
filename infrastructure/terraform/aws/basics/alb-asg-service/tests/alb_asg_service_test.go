@@ -80,13 +80,13 @@ func TestALBASGService(t *testing.T) {
 	t.Run("http cluster connectivity and load balancing", func(t *testing.T) {
 		albURL := terraform.Output(t, opts, "alb_url")
 		maxRetries := 30
-		timeBetweenRetries := 10 * time.Second
+		sleepBetweenRetries := 10 * time.Second
 		httphelper.HttpGetWithRetryWithCustomValidation(
 			t,
 			albURL,
 			nil,
 			maxRetries,
-			timeBetweenRetries,
+			sleepBetweenRetries,
 			func(statusCode int, body string) bool {
 				return statusCode == http.StatusOK && strings.Contains(body, expectedBody)
 			},
