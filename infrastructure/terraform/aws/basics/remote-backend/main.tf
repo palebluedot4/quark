@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "enforce_ssl" {
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
 
-  force_destroy = var.environment == "dev" ? true : false
+  force_destroy = var.environment == "dev"
 
   lifecycle {
     prevent_destroy = true
