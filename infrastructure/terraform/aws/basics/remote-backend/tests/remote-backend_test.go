@@ -23,10 +23,12 @@ import (
 func TestRemoteBackend(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
+	const (
+		expectedEnvironment = "dev"
+		expectedRegion      = "ap-northeast-1"
+	)
 	ts := strconv.FormatInt(time.Now().UnixNano(), 10)
 	id := strings.ToLower(random.UniqueId())
-	expectedEnvironment := "dev"
-	expectedRegion := "ap-northeast-1"
 	expectedBucketName := fmt.Sprintf("bucket-%s-%s", ts, id)
 	expectedTableName := fmt.Sprintf("lock-%s-%s", ts, id)
 	opts := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
