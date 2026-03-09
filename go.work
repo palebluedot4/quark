@@ -13,4 +13,5 @@ use (
 	./cookbook/sequence-manipulation/go
 	./crypto/hashing/go
 	./infrastructure/terraform
+	./infrastructure/terraform/aws/basics/ecr-repository/cmd/app
 )
