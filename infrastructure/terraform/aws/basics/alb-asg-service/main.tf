@@ -122,16 +122,17 @@ resource "aws_vpc_security_group_egress_rule" "instance_all" {
 }
 
 resource "aws_lb_target_group" "this" {
-  name_prefix = "lbasg-"
-  port        = var.server_port
-  protocol    = "HTTP"
-  vpc_id      = data.aws_vpc.default.id
+  name_prefix          = "lbasg-"
+  port                 = var.server_port
+  protocol             = "HTTP"
+  vpc_id               = data.aws_vpc.default.id
+  deregistration_delay = 10
 
   health_check {
     path                = "/"
     protocol            = "HTTP"
     matcher             = "200"
-    interval            = 15
+    interval            = 10
     timeout             = 3
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -143,10 +144,11 @@ resource "aws_lb_target_group" "this" {
 }
 
 resource "aws_lb" "this" {
-  name               = "alb-asg-service-lb"
-  load_balancer_type = "application"
-  subnets            = data.aws_subnets.default.ids
-  security_groups    = [aws_security_group.lb.id]
+  name                       = "alb-asg-service-lb"
+  load_balancer_type         = "application"
+  subnets                    = data.aws_subnets.default.ids
+  security_groups            = [aws_security_group.lb.id]
+  drop_invalid_header_fields = true
 
   tags = {
     Name = "alb-asg-service-lb"
@@ -188,8 +190,9 @@ resource "aws_launch_template" "this" {
   }
 
   metadata_options {
-    http_tokens   = "required"
-    http_endpoint = "enabled"
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
   }
 
   user_data = base64encode(<<-EOF
@@ -236,8 +239,7 @@ resource "aws_launch_template" "this" {
 }
 
 resource "aws_autoscaling_group" "this" {
-  name_prefix = "alb-asg-service-"
-
+  name_prefix         = "alb-asg-service-"
   vpc_zone_identifier = data.aws_subnets.default.ids
   target_group_arns   = [aws_lb_target_group.this.arn]
 
@@ -246,7 +248,9 @@ resource "aws_autoscaling_group" "this" {
   desired_capacity = var.desired_capacity
 
   health_check_type         = "ELB"
-  health_check_grace_period = 120
+  health_check_grace_period = 60
+  default_instance_warmup   = 60
+  max_instance_lifetime     = 2592000 # 30 days
 
   launch_template {
     id      = aws_launch_template.this.id
@@ -258,7 +262,7 @@ resource "aws_autoscaling_group" "this" {
 
     preferences {
       min_healthy_percentage = 50
-      instance_warmup        = 120
+      instance_warmup        = 60
     }
   }
 
