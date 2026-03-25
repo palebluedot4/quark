@@ -1,3 +1,3 @@
 module github.com/palebluedot4/quark/concepts/concurrency
 
-go 1.25
+go 1.26

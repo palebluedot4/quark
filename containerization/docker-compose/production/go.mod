@@ -1,12 +1,12 @@
 module github.com/palebluedot4/quark/containerization/docker-compose/production
 
-go 1.25
+go 1.26
 
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/redis/go-redis/v9 v9.16.0
-	github.com/samber/slog-gin v1.18.0
+	github.com/samber/slog-gin v1.21.0
 )
 
 require (

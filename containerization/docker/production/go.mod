@@ -1,10 +1,10 @@
 module github.com/palebluedot4/quark/containerization/docker/production
 
-go 1.25
+go 1.26
 
 require (
 	github.com/gin-gonic/gin v1.11.0
-	github.com/samber/slog-gin v1.18.0
+	github.com/samber/slog-gin v1.21.0
 )
 
 require (

@@ -1,6 +1,6 @@
 module github.com/palebluedot4/quark/crypto/hashing
 
-go 1.25
+go 1.26
 
 require (
 	go.uber.org/mock v0.6.0
