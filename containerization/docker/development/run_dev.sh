@@ -9,4 +9,4 @@ docker run --rm \
     -p 8080:8080 \
     -v "$(pwd):/app" \
     -v go-modules-cache:/go/pkg/mod \
-    palebluedot4/development
+    palebluedot4/dev
