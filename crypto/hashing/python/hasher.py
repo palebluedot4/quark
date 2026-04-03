@@ -15,6 +15,21 @@ class Hasher(Protocol):
 
 
 @final
+class SHA3_256Hasher(Hasher):
+    __slots__ = ()
+
+    @override
+    def digest(self, data: bytes) -> bytes:
+        return hashlib.sha3_256(data).digest()
+
+    @override
+    def verify(self, digest: bytes, data: bytes) -> None:
+        computed = hashlib.sha3_256(data).digest()
+        if not hmac.compare_digest(digest, computed):
+            raise HashMismatchError()
+
+
+@final
 class SHA256Hasher(Hasher):
     __slots__ = ()
 
