@@ -101,3 +101,21 @@ func TestCounter_Concurrent(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkCounter_Value(b *testing.B) {
+	var c mutex.Counter
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			c.Value()
+		}
+	})
+}
+
+func BenchmarkCounter_Increment(b *testing.B) {
+	var c mutex.Counter
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			c.Increment()
+		}
+	})
+}
