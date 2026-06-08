@@ -72,3 +72,19 @@ func TestConcurrent(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func BenchmarkGetPut(b *testing.B) {
+	for b.Loop() {
+		buf := pool.Get()
+		buf.WriteString("benchmark payload")
+		pool.Put(buf)
+	}
+}
+
+func BenchmarkNoPool(b *testing.B) {
+	for b.Loop() {
+		buf := new(bytes.Buffer)
+		buf.WriteString("benchmark payload")
+		_ = buf
+	}
+}
