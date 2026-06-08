@@ -21,6 +21,7 @@ func TestOpportunisticRunner(t *testing.T) {
 				<-release
 			}); !got {
 				t.Errorf("TryRun() = %v, want %v", got, true)
+				close(started)
 			}
 		})
 		<-started
