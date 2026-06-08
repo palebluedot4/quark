@@ -12,16 +12,7 @@ type Config struct {
 	Timeout time.Duration
 }
 
-var Load = sync.OnceValues(func() (*Config, error) {
-	timeout, err := time.ParseDuration(getenv("APP_TIMEOUT", "30s"))
-	if err != nil {
-		return nil, fmt.Errorf("parse APP_TIMEOUT: %w", err)
-	}
-	return &Config{
-		Addr:    getenv("APP_ADDR", "localhost:8080"),
-		Timeout: timeout,
-	}, nil
-})
+var Load = sync.OnceValues(parse)
 
 var (
 	once   sync.Once
@@ -31,17 +22,20 @@ var (
 
 func LoadManual() (*Config, error) {
 	once.Do(func() {
-		timeout, err := time.ParseDuration(getenv("APP_TIMEOUT", "30s"))
-		if err != nil {
-			cfgErr = fmt.Errorf("parse APP_TIMEOUT: %w", err)
-			return
-		}
-		cfg = &Config{
-			Addr:    getenv("APP_ADDR", "localhost:8080"),
-			Timeout: timeout,
-		}
+		cfg, cfgErr = parse()
 	})
 	return cfg, cfgErr
+}
+
+func parse() (*Config, error) {
+	timeout, err := time.ParseDuration(getenv("APP_TIMEOUT", "30s"))
+	if err != nil {
+		return nil, fmt.Errorf("parse APP_TIMEOUT: %w", err)
+	}
+	return &Config{
+		Addr:    getenv("APP_ADDR", "localhost:8080"),
+		Timeout: timeout,
+	}, nil
 }
 
 func getenv(key, fallback string) string {
