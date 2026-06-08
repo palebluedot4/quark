@@ -11,27 +11,27 @@ func TestCounter(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		fn   func(*mutex.Counter)
+		f    func(*mutex.Counter)
 		want uint64
 	}{
 		{
 			name: "increment",
-			fn:   func(c *mutex.Counter) { c.Increment() },
+			f:    func(c *mutex.Counter) { c.Increment() },
 			want: 1,
 		},
 		{
 			name: "add",
-			fn:   func(c *mutex.Counter) { c.Add(5) },
+			f:    func(c *mutex.Counter) { c.Add(5) },
 			want: 5,
 		},
 		{
 			name: "set",
-			fn:   func(c *mutex.Counter) { c.Set(42) },
+			f:    func(c *mutex.Counter) { c.Set(42) },
 			want: 42,
 		},
 		{
 			name: "combined",
-			fn: func(c *mutex.Counter) {
+			f: func(c *mutex.Counter) {
 				c.Increment()
 				c.Add(10)
 				c.Set(5)
@@ -45,7 +45,7 @@ func TestCounter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var c mutex.Counter
-			tt.fn(&c)
+			tt.f(&c)
 			got := c.Value()
 			if got != tt.want {
 				t.Errorf("Value() = %v, want %v", got, tt.want)
@@ -58,21 +58,21 @@ func TestCounter_Concurrent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
-		fn         func(*mutex.Counter)
+		f          func(*mutex.Counter)
 		workers    int
 		iterations int
 		want       uint64
 	}{
 		{
 			name:       "increment",
-			fn:         func(c *mutex.Counter) { c.Increment() },
+			f:          func(c *mutex.Counter) { c.Increment() },
 			workers:    100,
 			iterations: 1000,
 			want:       100 * 1000,
 		},
 		{
 			name:       "add",
-			fn:         func(c *mutex.Counter) { c.Add(5) },
+			f:          func(c *mutex.Counter) { c.Add(5) },
 			workers:    50,
 			iterations: 1000,
 			want:       50 * 1000 * 5,
@@ -89,7 +89,7 @@ func TestCounter_Concurrent(t *testing.T) {
 			for range tt.workers {
 				wg.Go(func() {
 					for range tt.iterations {
-						tt.fn(&c)
+						tt.f(&c)
 					}
 				})
 			}

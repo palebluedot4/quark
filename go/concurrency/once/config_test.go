@@ -13,10 +13,10 @@ func TestLoad(t *testing.T) {
 	t.Setenv("APP_TIMEOUT", "15s")
 	tests := []struct {
 		name string
-		fn   func() (*once.Config, error)
+		f    func() (*once.Config, error)
 	}{
-		{name: "Load", fn: once.Load},
-		{name: "LoadManual", fn: once.LoadManual},
+		{name: "Load", f: once.Load},
+		{name: "LoadManual", f: once.LoadManual},
 	}
 
 	for _, tt := range tests {
@@ -26,7 +26,7 @@ func TestLoad(t *testing.T) {
 			var wg sync.WaitGroup
 			for i := range cfgs {
 				wg.Go(func() {
-					cfg, err := tt.fn()
+					cfg, err := tt.f()
 					if err != nil {
 						t.Errorf("%s() error = %v, want nil", tt.name, err)
 					}
