@@ -9,3 +9,15 @@ func RunAll(tasks []func()) {
 	}
 	wg.Wait()
 }
+
+func RunAllManual(tasks []func()) {
+	var wg sync.WaitGroup
+	wg.Add(len(tasks))
+	for _, task := range tasks {
+		go func() {
+			defer wg.Done()
+			task()
+		}()
+	}
+	wg.Wait()
+}
