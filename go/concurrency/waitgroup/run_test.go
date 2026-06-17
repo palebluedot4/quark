@@ -47,3 +47,25 @@ func TestRun(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkRun(b *testing.B) {
+	runners := []struct {
+		name string
+		f    func([]func())
+	}{
+		{name: "RunAll", f: waitgroup.RunAll},
+		{name: "RunAllManual", f: waitgroup.RunAllManual},
+	}
+	tasks := make([]func(), 1000)
+	for i := range tasks {
+		tasks[i] = func() {}
+	}
+
+	for _, runner := range runners {
+		b.Run(runner.name, func(b *testing.B) {
+			for b.Loop() {
+				runner.f(tasks)
+			}
+		})
+	}
+}
