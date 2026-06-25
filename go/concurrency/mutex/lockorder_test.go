@@ -3,6 +3,8 @@ package mutex_test
 import (
 	"errors"
 	"math"
+	"math/rand/v2"
+	"sync"
 	"testing"
 
 	"github.com/palebluedot4/quark/go/concurrency/mutex"
@@ -172,4 +174,64 @@ func TestTransfer(t *testing.T) {
 			t.Errorf("Balance() = %v, want %v", got, 100)
 		}
 	})
+}
+
+func TestTransfer_Concurrent(t *testing.T) {
+	t.Parallel()
+	const (
+		n         = 8
+		initial   = 1000
+		workers   = 50
+		transfers = 1000
+	)
+	accounts := make([]*mutex.Account, n)
+	for i := range accounts {
+		accounts[i] = mutex.NewAccount(uint64(i), initial)
+	}
+	var wg sync.WaitGroup
+	for w := range workers {
+		wg.Go(func() {
+			rng := rand.New(rand.NewPCG(uint64(w), 0))
+			for range transfers {
+				from := accounts[rng.IntN(n)]
+				to := accounts[rng.IntN(n)]
+				_ = mutex.Transfer(from, to, int64(rng.IntN(10)+1))
+			}
+		})
+	}
+	wg.Wait()
+	var total int64
+	for _, a := range accounts {
+		total += a.Balance()
+	}
+	if want := int64(n * initial); total != want {
+		t.Errorf("total balance = %v, want %v", total, want)
+	}
+}
+
+func TestTransfer_NoDeadlock(t *testing.T) {
+	t.Parallel()
+	const (
+		initial = 1_000_000
+		workers = 50
+		rounds  = 2_000
+	)
+	a := mutex.NewAccount(1, initial)
+	b := mutex.NewAccount(2, initial)
+	var wg sync.WaitGroup
+	for w := range workers {
+		from, to := a, b
+		if w%2 == 1 {
+			from, to = b, a
+		}
+		wg.Go(func() {
+			for range rounds {
+				_ = mutex.Transfer(from, to, 1)
+			}
+		})
+	}
+	wg.Wait()
+	if got := a.Balance() + b.Balance(); got != 2*initial {
+		t.Errorf("total balance = %v, want %v", got, 2*initial)
+	}
 }
