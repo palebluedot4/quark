@@ -82,3 +82,13 @@ func TestRunAllPanicsOnNonPositiveLimit(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkRunAll(b *testing.B) {
+	tasks := make([]func(), 1000)
+	for i := range tasks {
+		tasks[i] = func() {}
+	}
+	for b.Loop() {
+		channel.RunAll(10, tasks)
+	}
+}
