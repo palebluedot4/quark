@@ -127,3 +127,14 @@ func TestRunAllPanicsOnNonPositiveLimit(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkRunAll(b *testing.B) {
+	ctx := context.Background()
+	tasks := make([]func(context.Context) error, 1000)
+	for i := range tasks {
+		tasks[i] = func(context.Context) error { return nil }
+	}
+	for b.Loop() {
+		_ = errgroupx.RunAll(ctx, 10, tasks)
+	}
+}
