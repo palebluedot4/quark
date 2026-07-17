@@ -3,6 +3,7 @@ package waitgroup_test
 import (
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 
 	"github.com/palebluedot4/quark/go/concurrency/waitgroup"
 )
@@ -44,6 +45,48 @@ func TestRun(t *testing.T) {
 					}
 				})
 			}
+		})
+	}
+}
+
+func TestRunStartsTasksConcurrently(t *testing.T) {
+	t.Parallel()
+	runners := []struct {
+		name string
+		f    func([]func())
+	}{
+		{name: "RunAll", f: waitgroup.RunAll},
+		{name: "RunAllManual", f: waitgroup.RunAllManual},
+	}
+
+	for _, runner := range runners {
+		t.Run(runner.name, func(t *testing.T) {
+			t.Parallel()
+			synctest.Test(t, func(t *testing.T) {
+				started := make(chan struct{}, 2)
+				release := make(chan struct{})
+				tasks := []func(){
+					func() {
+						started <- struct{}{}
+						<-release
+					},
+					func() {
+						started <- struct{}{}
+						<-release
+					},
+				}
+				done := make(chan struct{})
+				go func() {
+					runner.f(tasks)
+					close(done)
+				}()
+				synctest.Wait()
+				if got := len(started); got != len(tasks) {
+					t.Errorf("%s() concurrently started tasks = %v, want %v", runner.name, got, len(tasks))
+				}
+				close(release)
+				<-done
+			})
 		})
 	}
 }
