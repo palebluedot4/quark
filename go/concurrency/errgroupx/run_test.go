@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/palebluedot4/quark/go/concurrency/errgroupx"
@@ -43,32 +44,36 @@ func TestRunAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			var ran, current, peak atomic.Int64
-			tasks := make([]func(context.Context) error, tt.taskCount)
-			for i := range tasks {
-				tasks[i] = func(context.Context) error {
-					ran.Add(1)
-					c := current.Add(1)
-					for {
-						p := peak.Load()
-						if c <= p || peak.CompareAndSwap(p, c) {
-							break
+			synctest.Test(t, func(t *testing.T) {
+				var ran, current, peak atomic.Int64
+				tasks := make([]func(context.Context) error, tt.taskCount)
+				for i := range tasks {
+					tasks[i] = func(context.Context) error {
+						ran.Add(1)
+						c := current.Add(1)
+						for {
+							p := peak.Load()
+							if c <= p || peak.CompareAndSwap(p, c) {
+								break
+							}
 						}
+						time.Sleep(time.Second)
+						current.Add(-1)
+						return nil
 					}
-					time.Sleep(time.Millisecond)
-					current.Add(-1)
-					return nil
 				}
-			}
-			if err := errgroupx.RunAll(context.Background(), tt.n, tasks); err != nil {
-				t.Errorf("RunAll() = %v, want nil", err)
-			}
-			if got := ran.Load(); got != int64(tt.taskCount) {
-				t.Errorf("RunAll() executed tasks = %v, want %v", got, tt.taskCount)
-			}
-			if got := peak.Load(); got > int64(tt.n) {
-				t.Errorf("RunAll() peak concurrency = %v, want <= %v", got, tt.n)
-			}
+				if err := errgroupx.RunAll(context.Background(), tt.n, tasks); err != nil {
+					t.Errorf("RunAll() = %v, want nil", err)
+				}
+				if got := ran.Load(); got != int64(tt.taskCount) {
+					t.Errorf("RunAll() executed tasks = %v, want %v", got, tt.taskCount)
+				}
+				got := peak.Load()
+				want := int64(min(tt.n, tt.taskCount))
+				if got != want {
+					t.Errorf("RunAll() peak concurrency = %v, want %v", got, want)
+				}
+			})
 		})
 	}
 }
