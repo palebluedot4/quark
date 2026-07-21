@@ -196,3 +196,47 @@ func TestRunUntilError(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkRunAll(b *testing.B) {
+	runners := []struct {
+		name string
+		f    func([]func())
+	}{
+		{name: "RunAll", f: func(tasks []func()) { iterator.RunAll(slices.Values(tasks)) }},
+		{name: "RunAllManual", f: func(tasks []func()) { iterator.RunAllManual(slices.Values(tasks)) }},
+	}
+	tasks := make([]func(), 1000)
+	for i := range tasks {
+		tasks[i] = func() {}
+	}
+
+	for _, runner := range runners {
+		b.Run(runner.name, func(b *testing.B) {
+			for b.Loop() {
+				runner.f(tasks)
+			}
+		})
+	}
+}
+
+func BenchmarkRunUntilError(b *testing.B) {
+	runners := []struct {
+		name string
+		f    func([]func() error) error
+	}{
+		{name: "RunUntilError", f: func(tasks []func() error) error { return iterator.RunUntilError(slices.Values(tasks)) }},
+		{name: "RunUntilErrorManual", f: func(tasks []func() error) error { return iterator.RunUntilErrorManual(slices.Values(tasks)) }},
+	}
+	tasks := make([]func() error, 1000)
+	for i := range tasks {
+		tasks[i] = func() error { return nil }
+	}
+
+	for _, runner := range runners {
+		b.Run(runner.name, func(b *testing.B) {
+			for b.Loop() {
+				_ = runner.f(tasks)
+			}
+		})
+	}
+}
