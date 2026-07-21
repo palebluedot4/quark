@@ -54,7 +54,7 @@ func TestCounter(t *testing.T) {
 	}
 }
 
-func TestCounter_Concurrent(t *testing.T) {
+func TestCounterConcurrent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
@@ -102,7 +102,7 @@ func TestCounter_Concurrent(t *testing.T) {
 	}
 }
 
-func BenchmarkCounter_Value(b *testing.B) {
+func BenchmarkCounterValue(b *testing.B) {
 	var c rwmutex.Counter
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -111,7 +111,7 @@ func BenchmarkCounter_Value(b *testing.B) {
 	})
 }
 
-func BenchmarkCounter_Increment(b *testing.B) {
+func BenchmarkCounterIncrement(b *testing.B) {
 	var c rwmutex.Counter
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
