@@ -13,11 +13,11 @@ var buffers = sync.Pool{
 	},
 }
 
-func Get() *bytes.Buffer {
+func GetBuffer() *bytes.Buffer {
 	return buffers.Get().(*bytes.Buffer)
 }
 
-func Put(buf *bytes.Buffer) {
+func PutBuffer(buf *bytes.Buffer) {
 	if buf.Cap() > maxBufferSize {
 		return
 	}
