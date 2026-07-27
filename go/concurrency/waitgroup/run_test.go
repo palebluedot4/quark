@@ -8,7 +8,7 @@ import (
 	"github.com/palebluedot4/quark/go/concurrency/waitgroup"
 )
 
-func TestRun(t *testing.T) {
+func TestRunAll(t *testing.T) {
 	t.Parallel()
 	runners := []struct {
 		name string
@@ -18,13 +18,13 @@ func TestRun(t *testing.T) {
 		{name: "RunAllManual", f: waitgroup.RunAllManual},
 	}
 	tests := []struct {
-		name string
-		want uint64
+		name  string
+		count int
 	}{
-		{name: "empty tasks", want: 0},
-		{name: "single task", want: 1},
-		{name: "concurrent 100", want: 100},
-		{name: "concurrent 10000", want: 10000},
+		{name: "empty tasks", count: 0},
+		{name: "single task", count: 1},
+		{name: "concurrent 100", count: 100},
+		{name: "concurrent 10000", count: 10000},
 	}
 
 	for _, runner := range runners {
@@ -33,15 +33,15 @@ func TestRun(t *testing.T) {
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
 					t.Parallel()
-					var counter atomic.Uint64
-					tasks := make([]func(), tt.want)
+					var ran atomic.Uint64
+					tasks := make([]func(), tt.count)
 					for i := range tasks {
-						tasks[i] = func() { counter.Add(1) }
+						tasks[i] = func() { ran.Add(1) }
 					}
 					runner.f(tasks)
-					got := counter.Load()
-					if got != tt.want {
-						t.Errorf("counter.Load() = %v, want %v", got, tt.want)
+					got := ran.Load()
+					if want := uint64(tt.count); got != want {
+						t.Errorf("%s() executed tasks = %v, want %v", runner.name, got, want)
 					}
 				})
 			}
@@ -49,7 +49,7 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestRunStartsTasksConcurrently(t *testing.T) {
+func TestRunAllStartsTasksConcurrently(t *testing.T) {
 	t.Parallel()
 	runners := []struct {
 		name string
@@ -91,7 +91,7 @@ func TestRunStartsTasksConcurrently(t *testing.T) {
 	}
 }
 
-func BenchmarkRun(b *testing.B) {
+func BenchmarkRunAll(b *testing.B) {
 	runners := []struct {
 		name string
 		f    func([]func())
