@@ -59,7 +59,7 @@ func Transfer(from, to *Account, amount int64) error {
 	if amount <= 0 {
 		return ErrInvalidAmount
 	}
-	if from == to {
+	if from.id == to.id {
 		return ErrSelfTransfer
 	}
 	first, second := from, to
