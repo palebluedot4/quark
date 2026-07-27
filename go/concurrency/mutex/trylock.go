@@ -6,7 +6,8 @@ import (
 )
 
 type OpportunisticRunner struct {
-	mu    sync.Mutex
+	mu sync.Mutex
+
 	runs  atomic.Uint64
 	skips atomic.Uint64
 }
