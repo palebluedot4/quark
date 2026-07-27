@@ -10,54 +10,79 @@ import (
 	"github.com/palebluedot4/quark/go/concurrency/mutex"
 )
 
-func TestAccount(t *testing.T) {
+func TestAccountDeposit(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
 		initial int64
-		f       func(*mutex.Account) error
+		amount  int64
 		want    int64
 		wantErr error
 	}{
 		{
-			name:    "deposit",
+			name:    "valid",
 			initial: 100,
-			f:       func(a *mutex.Account) error { return a.Deposit(50) },
+			amount:  50,
 			want:    150,
 			wantErr: nil,
 		},
 		{
-			name:    "deposit non-positive",
+			name:    "non-positive",
 			initial: 100,
-			f:       func(a *mutex.Account) error { return a.Deposit(0) },
+			amount:  0,
 			want:    100,
 			wantErr: mutex.ErrInvalidAmount,
 		},
 		{
-			name:    "deposit overflow",
+			name:    "overflow",
 			initial: math.MaxInt64,
-			f:       func(a *mutex.Account) error { return a.Deposit(1) },
+			amount:  1,
 			want:    math.MaxInt64,
 			wantErr: mutex.ErrOverflow,
 		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := mutex.NewAccount(1, tt.initial)
+			if err := a.Deposit(tt.amount); !errors.Is(err, tt.wantErr) {
+				t.Errorf("Deposit(%d) error = %v, want %v", tt.amount, err, tt.wantErr)
+			}
+			if got := a.Balance(); got != tt.want {
+				t.Errorf("Balance() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAccountWithdraw(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		initial int64
+		amount  int64
+		want    int64
+		wantErr error
+	}{
 		{
-			name:    "withdraw",
+			name:    "valid",
 			initial: 100,
-			f:       func(a *mutex.Account) error { return a.Withdraw(40) },
+			amount:  40,
 			want:    60,
 			wantErr: nil,
 		},
 		{
-			name:    "withdraw non-positive",
+			name:    "non-positive",
 			initial: 100,
-			f:       func(a *mutex.Account) error { return a.Withdraw(-5) },
+			amount:  -5,
 			want:    100,
 			wantErr: mutex.ErrInvalidAmount,
 		},
 		{
-			name:    "withdraw insufficient",
+			name:    "insufficient funds",
 			initial: 100,
-			f:       func(a *mutex.Account) error { return a.Withdraw(200) },
+			amount:  200,
 			want:    100,
 			wantErr: mutex.ErrInsufficientFunds,
 		},
@@ -67,8 +92,8 @@ func TestAccount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := mutex.NewAccount(1, tt.initial)
-			if err := tt.f(a); !errors.Is(err, tt.wantErr) {
-				t.Errorf("%s error = %v, want %v", tt.name, err, tt.wantErr)
+			if err := a.Withdraw(tt.amount); !errors.Is(err, tt.wantErr) {
+				t.Errorf("Withdraw(%d) error = %v, want %v", tt.amount, err, tt.wantErr)
 			}
 			if got := a.Balance(); got != tt.want {
 				t.Errorf("Balance() = %v, want %v", got, tt.want)
@@ -135,6 +160,17 @@ func TestTransfer(t *testing.T) {
 			wantErr:     mutex.ErrInsufficientFunds,
 		},
 		{
+			name:        "distinct accounts sharing an id",
+			fromID:      1,
+			toID:        1,
+			fromBalance: 100,
+			toBalance:   50,
+			amount:      30,
+			wantFrom:    100,
+			wantTo:      50,
+			wantErr:     mutex.ErrSelfTransfer,
+		},
+		{
 			name:        "recipient overflow",
 			fromID:      1,
 			toID:        2,
@@ -176,7 +212,7 @@ func TestTransfer(t *testing.T) {
 	})
 }
 
-func TestTransfer_Concurrent(t *testing.T) {
+func TestTransferConcurrent(t *testing.T) {
 	t.Parallel()
 	const (
 		n         = 8
@@ -209,7 +245,7 @@ func TestTransfer_Concurrent(t *testing.T) {
 	}
 }
 
-func TestTransfer_NoDeadlock(t *testing.T) {
+func TestTransferNoDeadlock(t *testing.T) {
 	t.Parallel()
 	const (
 		initial = 1_000_000
