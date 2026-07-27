@@ -10,7 +10,7 @@ import (
 
 func TestRunAll(t *testing.T) {
 	t.Parallel()
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -27,8 +27,8 @@ func TestRunAll(t *testing.T) {
 		{name: "concurrent 10000", count: 10000},
 	}
 
-	for _, runner := range runners {
-		t.Run(runner.name, func(t *testing.T) {
+	for _, impl := range impls {
+		t.Run(impl.name, func(t *testing.T) {
 			t.Parallel()
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
@@ -38,10 +38,10 @@ func TestRunAll(t *testing.T) {
 					for i := range tasks {
 						tasks[i] = func() { ran.Add(1) }
 					}
-					runner.f(tasks)
+					impl.f(tasks)
 					got := ran.Load()
 					if want := uint64(tt.count); got != want {
-						t.Errorf("%s() executed tasks = %v, want %v", runner.name, got, want)
+						t.Errorf("%s() executed tasks = %v, want %v", impl.name, got, want)
 					}
 				})
 			}
@@ -51,7 +51,7 @@ func TestRunAll(t *testing.T) {
 
 func TestRunAllStartsTasksConcurrently(t *testing.T) {
 	t.Parallel()
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -59,8 +59,8 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 		{name: "RunAllManual", f: waitgroup.RunAllManual},
 	}
 
-	for _, runner := range runners {
-		t.Run(runner.name, func(t *testing.T) {
+	for _, impl := range impls {
+		t.Run(impl.name, func(t *testing.T) {
 			t.Parallel()
 			synctest.Test(t, func(t *testing.T) {
 				started := make(chan struct{}, 2)
@@ -77,12 +77,12 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 				}
 				done := make(chan struct{})
 				go func() {
-					runner.f(tasks)
+					impl.f(tasks)
 					close(done)
 				}()
 				synctest.Wait()
 				if got := len(started); got != len(tasks) {
-					t.Errorf("%s() concurrently started tasks = %v, want %v", runner.name, got, len(tasks))
+					t.Errorf("%s() concurrently started tasks = %v, want %v", impl.name, got, len(tasks))
 				}
 				close(release)
 				<-done
@@ -92,7 +92,7 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 }
 
 func BenchmarkRunAll(b *testing.B) {
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -104,10 +104,10 @@ func BenchmarkRunAll(b *testing.B) {
 		tasks[i] = func() {}
 	}
 
-	for _, runner := range runners {
-		b.Run(runner.name, func(b *testing.B) {
+	for _, impl := range impls {
+		b.Run(impl.name, func(b *testing.B) {
 			for b.Loop() {
-				runner.f(tasks)
+				impl.f(tasks)
 			}
 		})
 	}

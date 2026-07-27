@@ -13,7 +13,7 @@ import (
 
 func TestRunAll(t *testing.T) {
 	t.Parallel()
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -30,8 +30,8 @@ func TestRunAll(t *testing.T) {
 		{name: "concurrent 10000", want: 10000},
 	}
 
-	for _, runner := range runners {
-		t.Run(runner.name, func(t *testing.T) {
+	for _, impl := range impls {
+		t.Run(impl.name, func(t *testing.T) {
 			t.Parallel()
 			for _, tt := range tests {
 				t.Run(tt.name, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestRunAll(t *testing.T) {
 					for i := range tasks {
 						tasks[i] = func() { counter.Add(1) }
 					}
-					runner.f(tasks)
+					impl.f(tasks)
 					got := counter.Load()
 					if got != tt.want {
 						t.Errorf("counter.Load() = %v, want %v", got, tt.want)
@@ -54,7 +54,7 @@ func TestRunAll(t *testing.T) {
 
 func TestRunAllStartsTasksConcurrently(t *testing.T) {
 	t.Parallel()
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -62,8 +62,8 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 		{name: "RunAllManual", f: func(tasks []func()) { iterator.RunAllManual(slices.Values(tasks)) }},
 	}
 
-	for _, runner := range runners {
-		t.Run(runner.name, func(t *testing.T) {
+	for _, impl := range impls {
+		t.Run(impl.name, func(t *testing.T) {
 			t.Parallel()
 			synctest.Test(t, func(t *testing.T) {
 				started := make(chan struct{}, 2)
@@ -80,12 +80,12 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 				}
 				done := make(chan struct{})
 				go func() {
-					runner.f(tasks)
+					impl.f(tasks)
 					close(done)
 				}()
 				synctest.Wait()
 				if got := len(started); got != len(tasks) {
-					t.Errorf("%s() concurrently started tasks = %v, want %v", runner.name, got, len(tasks))
+					t.Errorf("%s() concurrently started tasks = %v, want %v", impl.name, got, len(tasks))
 				}
 				close(release)
 				<-done
@@ -96,7 +96,7 @@ func TestRunAllStartsTasksConcurrently(t *testing.T) {
 
 func TestRunUntilError(t *testing.T) {
 	t.Parallel()
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func(iter.Seq[func() error]) error
 	}{
@@ -105,8 +105,8 @@ func TestRunUntilError(t *testing.T) {
 	}
 	want := errors.New("boom")
 
-	for _, runner := range runners {
-		t.Run(runner.name, func(t *testing.T) {
+	for _, impl := range impls {
+		t.Run(impl.name, func(t *testing.T) {
 			t.Parallel()
 			tests := []struct {
 				name      string
@@ -159,12 +159,12 @@ func TestRunUntilError(t *testing.T) {
 							return nil
 						}
 					}
-					got := runner.f(slices.Values(tasks))
+					got := impl.f(slices.Values(tasks))
 					if !errors.Is(got, tt.want) {
-						t.Errorf("%s() = %v, want %v", runner.name, got, tt.want)
+						t.Errorf("%s() = %v, want %v", impl.name, got, tt.want)
 					}
 					if ran != tt.wantRan {
-						t.Errorf("%s() ran %v tasks, want %v", runner.name, ran, tt.wantRan)
+						t.Errorf("%s() ran %v tasks, want %v", impl.name, ran, tt.wantRan)
 					}
 				})
 			}
@@ -186,11 +186,11 @@ func TestRunUntilError(t *testing.T) {
 						}
 					}
 				}
-				if err := runner.f(tasks); !errors.Is(err, want) {
-					t.Errorf("%s() = %v, want %v", runner.name, err, want)
+				if err := impl.f(tasks); !errors.Is(err, want) {
+					t.Errorf("%s() = %v, want %v", impl.name, err, want)
 				}
 				if yielded != 2 {
-					t.Errorf("%s() consumed tasks = %v, want %v", runner.name, yielded, 2)
+					t.Errorf("%s() consumed tasks = %v, want %v", impl.name, yielded, 2)
 				}
 			})
 		})
@@ -198,7 +198,7 @@ func TestRunUntilError(t *testing.T) {
 }
 
 func BenchmarkRunAll(b *testing.B) {
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func())
 	}{
@@ -210,17 +210,17 @@ func BenchmarkRunAll(b *testing.B) {
 		tasks[i] = func() {}
 	}
 
-	for _, runner := range runners {
-		b.Run(runner.name, func(b *testing.B) {
+	for _, impl := range impls {
+		b.Run(impl.name, func(b *testing.B) {
 			for b.Loop() {
-				runner.f(tasks)
+				impl.f(tasks)
 			}
 		})
 	}
 }
 
 func BenchmarkRunUntilError(b *testing.B) {
-	runners := []struct {
+	impls := []struct {
 		name string
 		f    func([]func() error) error
 	}{
@@ -232,10 +232,10 @@ func BenchmarkRunUntilError(b *testing.B) {
 		tasks[i] = func() error { return nil }
 	}
 
-	for _, runner := range runners {
-		b.Run(runner.name, func(b *testing.B) {
+	for _, impl := range impls {
+		b.Run(impl.name, func(b *testing.B) {
 			for b.Loop() {
-				_ = runner.f(tasks)
+				_ = impl.f(tasks)
 			}
 		})
 	}
