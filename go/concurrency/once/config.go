@@ -12,7 +12,11 @@ type Config struct {
 	Timeout time.Duration
 }
 
-var Load = sync.OnceValues(parse)
+func Load() (*Config, error) {
+	return load()
+}
+
+var load = sync.OnceValues(parse)
 
 var (
 	once   sync.Once
