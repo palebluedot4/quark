@@ -31,3 +31,23 @@ func AbsFloatSignbit[T constraints.Float](x T) T {
 	}
 	return x
 }
+
+const (
+	float32Size = 4
+	float64Size = 8
+)
+
+func AbsFloatBitwise[T constraints.Float](x T) T {
+	switch unsafe.Sizeof(x) {
+	case float32Size:
+		const signMask = 1 << (float32Size*bitsPerByte - 1)
+		bits := *(*uint32)(unsafe.Pointer(&x)) &^ signMask
+		return *(*T)(unsafe.Pointer(&bits))
+	case float64Size:
+		const signMask = 1 << (float64Size*bitsPerByte - 1)
+		bits := *(*uint64)(unsafe.Pointer(&x)) &^ signMask
+		return *(*T)(unsafe.Pointer(&bits))
+	default:
+		panic("mathx.AbsFloatBitwise: unreachable")
+	}
+}
