@@ -24,3 +24,10 @@ func AbsSignedBitwise[T constraints.Signed](x T) T {
 func AbsFloat[T constraints.Float](x T) T {
 	return T(math.Abs(float64(x)))
 }
+
+func AbsFloatSignbit[T constraints.Float](x T) T {
+	if math.Signbit(float64(x)) {
+		return -x
+	}
+	return x
+}
