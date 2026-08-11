@@ -159,3 +159,14 @@ func TestConfig(t *testing.T) {
 		wg.Wait()
 	})
 }
+
+func BenchmarkLoad(b *testing.B) {
+	if _, err := Load(); err != nil {
+		b.Fatalf("Load() error = %v, want nil", err)
+	}
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, _ = Load()
+		}
+	})
+}
