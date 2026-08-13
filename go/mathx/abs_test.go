@@ -2,6 +2,7 @@ package mathx_test
 
 import (
 	"math"
+	"math/rand/v2"
 	"reflect"
 	"testing"
 
@@ -302,6 +303,48 @@ func TestAbsFloatSupportsNamedTypes(t *testing.T) {
 			got := v.f(-5.5)
 			if want := measurement(5.5); got != want {
 				t.Errorf("%s(measurement(-5.5)) = %v, want %v", v.name, got, want)
+			}
+		})
+	}
+}
+
+const inputSize = 1 << 10
+
+func BenchmarkAbsSigned(b *testing.B) {
+	r := rand.New(rand.NewPCG(42, 0))
+	in := make([]int, inputSize)
+	for i := range in {
+		in[i] = r.IntN(2001) - 1000
+	}
+	benchmarkVariants(b, signedVariants[int](), in)
+}
+
+func BenchmarkAbsFloat64(b *testing.B) {
+	r := rand.New(rand.NewPCG(42, 0))
+	in := make([]float64, inputSize)
+	for i := range in {
+		in[i] = r.Float64()*2000 - 1000
+	}
+	benchmarkVariants(b, floatVariants[float64](), in)
+}
+
+func BenchmarkAbsFloat32(b *testing.B) {
+	r := rand.New(rand.NewPCG(42, 0))
+	in := make([]float32, inputSize)
+	for i := range in {
+		in[i] = r.Float32()*2000 - 1000
+	}
+	benchmarkVariants(b, floatVariants[float32](), in)
+}
+
+func benchmarkVariants[T any](b *testing.B, variants []variant[T], in []T) {
+	b.Helper()
+	for _, v := range variants {
+		b.Run(v.name, func(b *testing.B) {
+			i := 0
+			for b.Loop() {
+				v.f(in[i&(len(in)-1)])
+				i++
 			}
 		})
 	}
