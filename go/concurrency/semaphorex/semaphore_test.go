@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -158,4 +159,29 @@ func TestSemaphoreReleasePanicsOnUnacquired(t *testing.T) {
 		}
 	}()
 	sem.Release()
+}
+
+func BenchmarkSemaphore(b *testing.B) {
+	ctx := context.Background()
+	sem := semaphorex.NewSemaphore(1)
+	for b.Loop() {
+		if err := sem.Acquire(ctx); err != nil {
+			b.Fatalf("Acquire() = %v, want nil", err)
+		}
+		sem.Release()
+	}
+}
+
+func BenchmarkSemaphoreParallel(b *testing.B) {
+	ctx := context.Background()
+	sem := semaphorex.NewSemaphore(runtime.GOMAXPROCS(0))
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if err := sem.Acquire(ctx); err != nil {
+				b.Errorf("Acquire() = %v, want nil", err)
+				return
+			}
+			sem.Release()
+		}
+	})
 }
