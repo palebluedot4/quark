@@ -7,7 +7,11 @@ import (
 	"github.com/palebluedot4/quark/go/concurrency/channel"
 )
 
+//nolint:paralleltest
 func TestBlockForever(t *testing.T) {
+	// This test must not run in parallel with other tests as it infers that f
+	// still blocks from a 50ms timeout, and their load makes that window
+	// unreliable.
 	tests := []struct {
 		name string
 		f    func()

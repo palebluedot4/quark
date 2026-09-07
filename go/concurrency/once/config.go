@@ -21,7 +21,7 @@ var load = sync.OnceValues(parse)
 var (
 	once   sync.Once
 	cfg    *Config
-	cfgErr error
+	cfgErr error //nolint:errname
 )
 
 func LoadManual() (*Config, error) {

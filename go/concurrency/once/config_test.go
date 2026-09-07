@@ -8,7 +8,10 @@ import (
 	"github.com/palebluedot4/quark/go/concurrency/once"
 )
 
+//nolint:paralleltest
 func TestLoad(t *testing.T) {
+	// This test must not run in parallel with other tests as t.Setenv panics
+	// in a test that has called t.Parallel.
 	t.Setenv("APP_ADDR", "127.0.0.1:8080")
 	t.Setenv("APP_TIMEOUT", "15s")
 	tests := []struct {

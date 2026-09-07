@@ -6,5 +6,5 @@ func BlockOnEmptySelect() {
 
 func BlockOnNilChannel() {
 	var ch chan struct{}
-	<-ch
+	<-ch //nolint:govet
 }

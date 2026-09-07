@@ -16,6 +16,7 @@ func TestGetBuffer(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest
 func TestPutBuffer(t *testing.T) {
 	// This test must not run in parallel with other tests as PutBuffer returns
 	// buf to the shared pool, where another test can take it and write to it.

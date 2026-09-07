@@ -145,6 +145,7 @@ func TestCloserPanic(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest
 func TestCloserReleasesCleanup(t *testing.T) {
 	// This test must not run in parallel with other tests as it asserts on when
 	// the captured buffer becomes unreachable, and their allocations delay the
