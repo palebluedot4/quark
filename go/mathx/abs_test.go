@@ -107,7 +107,7 @@ func testSignedWidth[T constraints.Signed](t *testing.T, minimum T) {
 		},
 	}
 
-	t.Run(reflect.TypeFor[T]().Name(), func(t *testing.T) {
+	t.Run(reflect.TypeFor[T]().String(), func(t *testing.T) {
 		t.Parallel()
 		for _, v := range signedVariants[T]() {
 			t.Run(v.name, func(t *testing.T) {
@@ -233,7 +233,7 @@ func testFloatSign[T constraints.Float](t *testing.T) {
 		},
 	}
 
-	t.Run(reflect.TypeFor[T]().Name(), func(t *testing.T) {
+	t.Run(reflect.TypeFor[T]().String(), func(t *testing.T) {
 		t.Parallel()
 		for _, v := range floatVariants[T]() {
 			t.Run(v.name, func(t *testing.T) {
