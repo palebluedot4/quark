@@ -153,3 +153,29 @@ func TestLinearSearchUsesFloatEquality(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkLinearSearch(b *testing.B) {
+	tests := []struct {
+		name   string
+		target int
+	}{
+		{name: "hit first", target: 0},
+		{name: "absent", target: -1},
+	}
+	in := make([]int, 1000)
+	for i := range in {
+		in[i] = i
+	}
+
+	for _, v := range linearVariants[[]int]() {
+		b.Run(v.name, func(b *testing.B) {
+			for _, tt := range tests {
+				b.Run(tt.name, func(b *testing.B) {
+					for b.Loop() {
+						v.f(in, tt.target)
+					}
+				})
+			}
+		})
+	}
+}
