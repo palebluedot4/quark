@@ -23,13 +23,13 @@ func NewQueue[T any](capacity int) *Queue[T] {
 	return q
 }
 
-func (q *Queue[T]) Enqueue(item T) {
+func (q *Queue[T]) Enqueue(v T) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	for q.count == len(q.buf) {
 		q.notFull.Wait()
 	}
-	q.buf[q.tail] = item
+	q.buf[q.tail] = v
 	q.tail = (q.tail + 1) % len(q.buf)
 	q.count++
 	q.notEmpty.Signal()
@@ -41,11 +41,11 @@ func (q *Queue[T]) Dequeue() T {
 	for q.count == 0 {
 		q.notEmpty.Wait()
 	}
-	item := q.buf[q.head]
+	v := q.buf[q.head]
 	var zero T
 	q.buf[q.head] = zero
 	q.head = (q.head + 1) % len(q.buf)
 	q.count--
 	q.notFull.Signal()
-	return item
+	return v
 }

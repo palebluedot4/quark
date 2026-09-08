@@ -11,13 +11,13 @@ func NewQueue[T any](capacity int) *Queue[T] {
 	return &Queue[T]{ch: make(chan T, capacity)}
 }
 
-func (q *Queue[T]) Enqueue(item T) {
-	q.ch <- item
+func (q *Queue[T]) Enqueue(v T) {
+	q.ch <- v
 }
 
-func (q *Queue[T]) TryEnqueue(item T) bool {
+func (q *Queue[T]) TryEnqueue(v T) bool {
 	select {
-	case q.ch <- item:
+	case q.ch <- v:
 		return true
 	default:
 		return false
@@ -30,8 +30,8 @@ func (q *Queue[T]) Dequeue() T {
 
 func (q *Queue[T]) TryDequeue() (T, bool) {
 	select {
-	case item := <-q.ch:
-		return item, true
+	case v := <-q.ch:
+		return v, true
 	default:
 		var zero T
 		return zero, false
