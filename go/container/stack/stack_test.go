@@ -217,3 +217,21 @@ func collectedAfterGC(b *atomic.Bool) bool {
 	}
 	return false
 }
+
+func BenchmarkStackPush(b *testing.B) {
+	const items = 1000
+	for b.Loop() {
+		s := stack.NewStack[int]()
+		for i := range items {
+			s.Push(i)
+		}
+	}
+}
+
+func BenchmarkStackPushPop(b *testing.B) {
+	s := stack.NewStack[int]()
+	for b.Loop() {
+		s.Push(1)
+		s.Pop()
+	}
+}
