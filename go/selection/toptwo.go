@@ -1,6 +1,9 @@
 package selection
 
-import "cmp"
+import (
+	"cmp"
+	"slices"
+)
 
 func TopTwoLinear[S ~[]E, E cmp.Ordered](s S) (first, second E) {
 	if len(s) < 2 {
@@ -58,4 +61,13 @@ func TopTwoTournament[S ~[]E, E cmp.Ordered](s S) (first, second E) {
 		}
 	}
 	return first, second
+}
+
+func TopTwoSorted[S ~[]E, E cmp.Ordered](s S) (first, second E) {
+	if len(s) < 2 {
+		panic("selection.TopTwoSorted: slice too short")
+	}
+	sorted := slices.Clone(s)
+	slices.Sort(sorted)
+	return sorted[len(sorted)-1], sorted[len(sorted)-2]
 }
