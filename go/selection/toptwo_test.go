@@ -3,6 +3,7 @@ package selection_test
 import (
 	"cmp"
 	"math"
+	"math/rand/v2"
 	"reflect"
 	"slices"
 	"testing"
@@ -217,6 +218,17 @@ func TestTopTwoPanicsOnShortSlice(t *testing.T) {
 					}()
 					v.f(tt.in)
 				})
+			}
+		})
+	}
+}
+
+func BenchmarkTopTwo(b *testing.B) {
+	in := rand.New(rand.NewPCG(42, 0)).Perm(1000)
+	for _, v := range topTwoVariants[[]int]() {
+		b.Run(v.name, func(b *testing.B) {
+			for b.Loop() {
+				v.f(in)
 			}
 		})
 	}
