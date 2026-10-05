@@ -141,3 +141,27 @@ func TestGzipWriterConcurrent(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func BenchmarkGzipWriterPooled(b *testing.B) {
+	for b.Loop() {
+		zw := pool.GetGzipWriter(io.Discard)
+		if _, err := io.WriteString(zw, "benchmark payload"); err != nil {
+			b.Fatal(err)
+		}
+		if err := pool.PutGzipWriter(zw); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkGzipWriterUnpooled(b *testing.B) {
+	for b.Loop() {
+		zw := gzip.NewWriter(io.Discard)
+		if _, err := io.WriteString(zw, "benchmark payload"); err != nil {
+			b.Fatal(err)
+		}
+		if err := zw.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
