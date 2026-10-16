@@ -15,3 +15,18 @@ func BubbleSort[S ~[]E, E cmp.Ordered](s S) {
 		n = lastSwap
 	}
 }
+
+func BubbleSortFlag[S ~[]E, E cmp.Ordered](s S) {
+	for i := range len(s) - 1 {
+		swapped := false
+		for j := range len(s) - i - 1 {
+			if cmp.Less(s[j+1], s[j]) {
+				s[j], s[j+1] = s[j+1], s[j]
+				swapped = true
+			}
+		}
+		if !swapped {
+			return
+		}
+	}
+}
